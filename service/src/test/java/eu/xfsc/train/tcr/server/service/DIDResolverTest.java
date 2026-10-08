@@ -160,6 +160,22 @@ public class DIDResolverTest {
     }
 
     @Test
+    public void testDIDResolutionNoServices() throws Exception {
+    	String did = "did:key:z6MkoTHsgNNrby8JzCNQ1iRLyW5QQ6R8Xuu6AA8igGrMVPUM";
+    	ResolveRepresentationResult rrr = ResolveRepresentationResult.build(null, docWebKeyVC.getBytes(), null);
+        when(uniResolver.resolveRepresentation(eq(did), any())).thenReturn(rrr);
+
+        DIDResolveResult didRes = didResolver.resolveDid(did, null);
+        assertNotNull(didRes);
+        assertNotNull(didRes.getDocument());
+        assertTrue(didRes.getEndpoints().isEmpty());
+        assertNull(didRes.getOrigin());
+
+        didRes = didResolver.resolveDid(did, List.of("gx-trust-list-issuer"));
+        assertTrue(didRes.getEndpoints().isEmpty());
+    }
+
+    @Test
     public void testDIDConfigResolution() throws Exception {
     	String did = "did:key:z6MkoTHsgNNrby8JzCNQ1iRLyW5QQ6R8Xuu6AA8igGrMVPUM";
     	ResolveRepresentationResult rrr = ResolveRepresentationResult.build(null, docWebKeyVC.getBytes(), null); 

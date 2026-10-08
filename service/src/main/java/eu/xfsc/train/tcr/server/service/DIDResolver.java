@@ -122,10 +122,12 @@ public class DIDResolver implements HealthIndicator {
 		log.debug("resolveDid.enter; got did: {}, types; {}", did, types);
 		Stream<Service> services;
 		DIDDocument diDoc = resolveDidDocument(did);
+		// service and controller are optional in a DID document (a did:key has neither)
+		List<Service> diServices = diDoc.getServices() == null ? List.of() : diDoc.getServices();
 		if (types == null || types.isEmpty()) {
-			services = diDoc.getServices().stream();
+			services = diServices.stream();
 		} else {
-			services = diDoc.getServices().stream().filter(s -> {
+			services = diServices.stream().filter(s -> {
 				if (s.getTypes() != null && !s.getTypes().isEmpty()) {
 					return types.stream().anyMatch(t -> s.getTypes().contains(t));
 				}
@@ -135,7 +137,7 @@ public class DIDResolver implements HealthIndicator {
 		List<TypedEndpoint> endpoints = services.flatMap(s -> resolveEndpoint(s.getServiceEndpoint(), s.getType()))
 				.toList();
 		String origin = resolveOrigin(diDoc.getId());
-		if (origin == null) {
+		if (origin == null && diDoc.getControllers() != null) {
 			origin = diDoc.getControllers().stream().map(uri -> resolveOrigin(uri)).findFirst().orElse(null);
 		}
 		if (origin == null && !endpoints.isEmpty()) {
